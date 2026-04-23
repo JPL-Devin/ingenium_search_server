@@ -1,5 +1,5 @@
-# Use the official Node.js 14 image as the base image
-FROM node:14.20.0
+# Use the official Node.js 22 LTS image as the base image
+FROM node:22-alpine
 
 # Set the working directory to /app
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install the dependencies
-RUN npm install
+RUN npm ci --omit=dev
 
 # Copy the rest of the application code to the working directory
 COPY . .
