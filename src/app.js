@@ -6,14 +6,15 @@ const jwtAuth = require('./middlewares/jwtAuth');
 const addUsernameToResponse = require('./middlewares/addUsernameToResponse');
 const { initElasticsearch } = require('./config/elasticsearch-config');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const OpenApiValidator = require('express-openapi-validator');
 const logger = require('./utils/logger');
 const swaggerUi = require('swagger-ui-express');
-const YAML = require('yamljs');
+const YAML = require('yaml');
 
 const app = express();
-const swaggerDocument = YAML.load(path.join(__dirname, './api/openapi.yaml'))
+const swaggerDocument = YAML.parse(
+  fs.readFileSync(path.join(__dirname, './api/openapi.yaml'), 'utf8')
+);
 
 function loadRoutes(app) {
   const routesPath = path.join(__dirname, 'routes');
@@ -25,8 +26,8 @@ function loadRoutes(app) {
   });
 }
 
-// Parse application/json
-app.use(bodyParser.json());
+// Parse application/json with size limit
+app.use(express.json({ limit: '100kb' }));
 
 // Set up CORS
 app.use(cors());
@@ -48,10 +49,17 @@ app.use(
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    message: err.message,
-    errors: err.errors,
-  });
+  if (err.status && err.status < 500) {
+    res.status(err.status).json({
+      message: err.message,
+      errors: err.errors,
+    });
+  } else {
+    logger.error(`Unhandled error: ${err.message}`);
+    res.status(err.status || 500).json({
+      message: 'Internal server error',
+    });
+  }
 });
 
 // Set up the Swagger UI route

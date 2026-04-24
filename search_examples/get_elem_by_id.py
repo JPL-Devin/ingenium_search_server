@@ -1,3 +1,6 @@
+import requests
+import json
+
 params = {
     'pretty': 'true'
 }

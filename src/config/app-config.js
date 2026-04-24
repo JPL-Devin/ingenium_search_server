@@ -4,7 +4,11 @@ config.PORT = isNaN(parseInt(process.env.PORT)) ? 3025 : parseInt(process.env.PO
 
 config.API_VERSION = 'v1';
 
-config.public_pem = process.env.PUBLIC_PEM || '';
+if (!process.env.PUBLIC_PEM) {
+  console.error('FATAL: PUBLIC_PEM environment variable is required');
+  process.exit(1);
+}
+config.public_pem = process.env.PUBLIC_PEM;
 
 config.ELASTIC_SEARCH_HOST = process.env.ELASTIC_SEARCH_HOST || 'http://127.0.0.1:19200';
 

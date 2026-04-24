@@ -1,5 +1,9 @@
 const { client } = require('../config/elasticsearch-config');
+const config = require('../config/app-config');
 const logger = require('../utils/logger');
+
+const MAX_SEARCH_VALUE_LENGTH = 256;
+const ALLOWED_SEARCH_INDICES = ['element', 'procedure_element', 'all'];
 
 function buildElasticsearchQuery(pattern) {
   if (!pattern) {
@@ -14,6 +18,10 @@ function buildElasticsearchQuery(pattern) {
       const operator = getOperator(rule.operator);
       const fields = rule.field.split(',').map((field) => field.trim());
       const value = rule.value;
+
+      if (typeof value === 'string' && value.length > MAX_SEARCH_VALUE_LENGTH) {
+        throw new Error(`Search value exceeds maximum length of ${MAX_SEARCH_VALUE_LENGTH} characters`);
+      }
 
       if (operator === 'range') {
         const comparisonOperator = getComparisonOperator(rule.operator);
@@ -139,9 +147,16 @@ function getComparisonOperator(operator) {
 async function searchQuery(req, res) {
 
   const { queryBuilderParams, limit, offset, index } = req.body;
+
+  const indexName = index || 'all';
+  if (!ALLOWED_SEARCH_INDICES.includes(indexName)) {
+    res.status(400).json({ message: 'Invalid index specified' });
+    return;
+  }
+
   try {
     const pageSize = limit; 
-    const indexes = index == 'all' ? ['procedure_element', 'element'] : index;
+    const indexes = indexName === 'all' ? ['procedure_element', 'element'] : indexName;
     logger.info(`queryBuilderParams: ${JSON.stringify(queryBuilderParams, 0, 2)}`);
     const query = buildElasticsearchQuery(queryBuilderParams);
     logger.info(`query: ${JSON.stringify(query, 0, 2)}`);
@@ -165,7 +180,7 @@ async function searchQuery(req, res) {
     res.status(200).json({results,total});
   } catch (error) {
     logger.error(`Error searching data in search: ${error}`);
-    res.status(500).json({ message: `Error searching data in search: ${error}` });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
