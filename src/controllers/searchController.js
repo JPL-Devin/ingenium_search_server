@@ -1,5 +1,4 @@
 const { client } = require('../config/elasticsearch-config');
-const config = require('../config/app-config');
 const logger = require('../utils/logger');
 
 const MAX_SEARCH_VALUE_LENGTH = 256;
