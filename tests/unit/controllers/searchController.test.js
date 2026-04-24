@@ -436,6 +436,30 @@ describe('searchController', () => {
       expect(logger.error).toHaveBeenCalled();
     });
 
+    test('should return 400 when search value exceeds max length', async () => {
+      mockReq.body = {
+        queryBuilderParams: {
+          condition: 'AND',
+          rules: [
+            { field: 'title', operator: '=', value: 'a'.repeat(257) },
+          ],
+        },
+        limit: 10,
+        offset: 0,
+        index: 'element',
+      };
+
+      await searchQuery(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('exceeds maximum length'),
+        })
+      );
+      expect(logger.warn).toHaveBeenCalled();
+    });
+
     test('should handle null queryBuilderParams', async () => {
       mockReq.body = {
         queryBuilderParams: null,

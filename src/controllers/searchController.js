@@ -4,6 +4,13 @@ const logger = require('../utils/logger');
 const MAX_SEARCH_VALUE_LENGTH = 256;
 const ALLOWED_SEARCH_INDICES = ['element', 'procedure_element', 'all'];
 
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 function buildElasticsearchQuery(pattern) {
   if (!pattern) {
     return null;
@@ -19,7 +26,7 @@ function buildElasticsearchQuery(pattern) {
       const value = rule.value;
 
       if (typeof value === 'string' && value.length > MAX_SEARCH_VALUE_LENGTH) {
-        throw new Error(`Search value exceeds maximum length of ${MAX_SEARCH_VALUE_LENGTH} characters`);
+        throw new ValidationError(`Search value exceeds maximum length of ${MAX_SEARCH_VALUE_LENGTH} characters`);
       }
 
       if (operator === 'range') {
@@ -178,8 +185,13 @@ async function searchQuery(req, res) {
     logger.info('Data received from search');
     res.status(200).json({results,total});
   } catch (error) {
-    logger.error(`Error searching data in search: ${error}`);
-    res.status(500).json({ message: 'Internal server error' });
+    if (error instanceof ValidationError) {
+      logger.warn(`Validation error in search: ${error.message}`);
+      res.status(400).json({ message: error.message });
+    } else {
+      logger.error(`Error searching data in search: ${error}`);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 };
 
