@@ -1,7 +1,8 @@
 # Ingenium Search Server
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Node.js](https://img.shields.io/badge/Node.js-14.0%2B-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%20LTS-green.svg)](https://nodejs.org/)
+[![CI](https://github.com/JPL-Devin/ingenium_search_server/actions/workflows/ci.yml/badge.svg)](https://github.com/JPL-Devin/ingenium_search_server/actions/workflows/ci.yml)
 [![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.x-yellow.svg)](https://www.elastic.co/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![API](https://img.shields.io/badge/API-OpenAPI%203.0-orange.svg)](https://swagger.io/specification/)
@@ -24,8 +25,8 @@ A powerful Node.js microservice providing advanced search functionality using El
 
 Before running the Ingenium Search Server, ensure you have the following installed:
 
-- **Node.js** (v14.0.0 or later)
-- **npm** (v6.0.0 or later)
+- **Node.js** (v22.0.0 or later — LTS)
+- **npm** (v10.0.0 or later)
 - **Elasticsearch** (v8.x recommended)
 - **Docker** (optional, for containerized deployment)
 
@@ -188,9 +189,9 @@ The API uses JWT (JSON Web Tokens) for authentication:
 
 ### Dockerfile
 The included Dockerfile creates an optimized production image:
-- Based on Node.js 14.20.0
+- Based on Node.js 22 LTS (Alpine)
 - Exposes port 3025
-- Includes all dependencies
+- Uses `npm ci --omit=dev` for deterministic, production-only installs
 
 ### Build and Run
 ```bash
@@ -204,6 +205,15 @@ docker run -d \
   --env-file .env \
   ingenium-search-server
 ```
+
+## 🧪 Testing
+
+Run the test suite with:
+```bash
+npm test
+```
+
+Tests are written with [Jest](https://jestjs.io/) and cover configuration, controllers, middleware, routes, and utilities. Coverage reports are generated automatically.
 
 ## 🧪 Examples
 
@@ -245,7 +255,9 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 │   ├── middlewares/         # Authentication & utility middleware
 │   ├── routes/              # API route definitions
 │   └── utils/               # Logging and utilities
+├── tests/                   # Jest test suite
 ├── search_examples/         # Usage examples
+├── .github/workflows/       # CI pipeline (GitHub Actions)
 ├── Dockerfile              # Container configuration
 └── package.json            # Node.js dependencies
 ```

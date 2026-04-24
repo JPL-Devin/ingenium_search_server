@@ -47,7 +47,13 @@ app.use(
   })
 );
 
-// Error handling middleware
+// Set up the Swagger UI route
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Load all the Routes
+loadRoutes(app);
+
+// Error handling middleware (must be after routes)
 app.use((err, req, res, next) => {
   if (err.status && err.status < 500) {
     res.status(err.status).json({
@@ -61,12 +67,6 @@ app.use((err, req, res, next) => {
     });
   }
 });
-
-// Set up the Swagger UI route
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-// Load all the Routes
-loadRoutes(app);
 
 
 async function startService() {
